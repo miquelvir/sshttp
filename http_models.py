@@ -21,7 +21,7 @@ class HttpRequest:
     uri: str
     version: str
     headers: Dict[str, str]
-    body: str
+    body: bytearray
 
     @property
     def json(self):
@@ -34,4 +34,4 @@ class HttpResponse:
     reason_phrase: str
     version: str
     headers: Dict[str, str]
-    body: str
+    body: bytearray

@@ -24,8 +24,7 @@ def handle_conn(conn):
             bytes_data = conn.recv(5)
             if not bytes_data:
                 break
-            text_data = bytes_data.decode()
-            keep_reading = deserializer.next(text_data)
+            keep_reading = deserializer.next(bytes_data)
         req: HttpRequest = deserializer.to_request()
         print(req)
 
@@ -39,10 +38,9 @@ def handle_conn(conn):
             "OK",
             "HTTP/1.0",
             {
-                "Content-Type": "application/json",
-                "Content-Length": len(res_body)
+                "Content-Type": "application/json"
             },
-            res_body
+            res_body.encode()
         )
         print(res)
 

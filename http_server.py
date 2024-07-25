@@ -5,7 +5,7 @@ from http_models import HttpMethod, HttpRequest, HttpResponse
 from http_serializer import serialize_response
 from datetime import datetime
 import json
-
+import time
 
 HOST = "127.0.0.1"
 PORT = 8080
@@ -25,11 +25,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 # read request
                 keep_reading = True
                 while keep_reading:
-                    bytes_data = conn.recv(5)
+                    bytes_data = conn.recv(500)
                     if not bytes_data:
                         break
-                    text_data = bytes_data.decode()
-                    keep_reading = deserializer.next(text_data)
+                    keep_reading = deserializer.next(bytes_data)
                 req: HttpRequest = deserializer.to_request()
                 print(req)
 
@@ -42,10 +41,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                     "OK",
                     "HTTP/1.0",
                     {
-                        "Content-Type": "application/json",
-                        "Content-Length": len(res_body)
+                        "Content-Type": "application/json"
                     },
-                    res_body
+                    res_body.encode()
                 )
                 print(res)
 

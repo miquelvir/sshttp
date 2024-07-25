@@ -4,6 +4,7 @@ from typing import Dict
 
 
 EOL = "\r\n"
+EOL_BYTES = EOL.encode()
 WS = " "
 
 def deserialize_request(request: str) -> HttpRequest:
@@ -51,22 +52,24 @@ class HttpRequestDeserializer:
     
     def __init__(self) -> None:
         self.state = self._READING_REQUEST_LINE_STATE
-        self.buffer = ""
+        self.buffer = bytearray()
         self.method = None
         self.uri = None
         self.version = None
         self.headers = {}
-        self.body = ""
+        self.body = bytearray()
         self.body_bytes_to_read = 0
     
-    def _parse_request_line(self, request_line: str):
+    def _parse_request_line(self, chunk: bytearray):
+        request_line = chunk.decode()
         method, uri, version, *_ = request_line.strip(EOL).split(WS, 2)
         self.method = method
         self.uri = uri
         self.version = version
         self.state = self._READING_HEADERS_LINE_STATE
     
-    def _parse_headers_line(self, header_line: str):
+    def _parse_headers_line(self, chunk: bytearray):
+        header_line = chunk.decode()
         if header_line == "\r\n":
             self.state = self._READING_BODY_STATE
             self.body_bytes_to_read = int(self.headers.get('Content-Length', 0))
@@ -79,31 +82,30 @@ class HttpRequestDeserializer:
         else:
             self.headers[key] = f"{self.headers[key]},{stripped_value}"
 
-    def _parse_body(self, content: str):
-        self.body += content
-        self.body_bytes_to_read -= len(content)  # todo not really
+    def _parse_body(self, chunk: bytearray):
+        self.body.extend(chunk)
+        self.body_bytes_to_read -= len(chunk)
         if self.body_bytes_to_read <= 0:
             self.state = self._DONE_STATE
 
-    def _parse(self, text: str):
+    def _parse(self, chunk: bytearray):
         if self.state == self._READING_REQUEST_LINE_STATE:
-            self._parse_request_line(text)
+            self._parse_request_line(chunk)
             
         elif self.state == self._READING_HEADERS_LINE_STATE:
-            self._parse_headers_line(text)
+            self._parse_headers_line(chunk)
             
         elif self.state == self._READING_BODY_STATE:
-            self._parse_body(text)
+            self._parse_body(chunk)
 
-    def next(self, text: str):
-        self.buffer += text  # todo should use mutable
+    def next(self, chunk: bytearray):
+        self.buffer.extend(chunk)
 
         if self.state != self._READING_BODY_STATE:
             last_parsed = 0
             last_read = 0
             while last_read < len(self.buffer) - 1:
-                # print("> " + repr(self.buffer[last_read:last_read+1]))
-                if self.buffer[last_read:last_read+2] == "\r\n":
+                if self.buffer[last_read:last_read+2] == EOL_BYTES:
                     line = self.buffer[last_parsed:last_read+2]
                     last_parsed = last_read + 2
                     self._parse(line)
@@ -115,7 +117,7 @@ class HttpRequestDeserializer:
 
         if self.state == self._READING_BODY_STATE:
             self._parse(self.buffer)
-            self.buffer = ""
+            self.buffer = bytearray()
         
         return not self.is_done()
     

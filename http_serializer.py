@@ -15,9 +15,11 @@ def serialize_response(response: HttpResponse) -> bytearray:
     # headers
     for key, value in response.headers.items():
         buffer.extend(f"{key}: {value}\r\n".encode())
+    if "Content-Length" not in response.headers:
+        buffer.extend(f"Content-Length: {len(response.body)}\r\n".encode())
     buffer.extend("\r\n".encode())
 
     # body
-    buffer.extend(response.body.encode())
+    buffer.extend(response.body)
 
     return buffer
