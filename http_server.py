@@ -35,15 +35,16 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 res_body = json.dumps({
                     "status": "ok",
                     "time": str(datetime.now().time())
-                })
+                }).encode()
                 res: HttpResponse = HttpResponse(
                     200,
                     "OK",
                     "HTTP/1.0",
                     {
-                        "Content-Type": "application/json"
+                        "Content-Type": "application/json",
+                        "Content-Length": len(res_body)
                     },
-                    res_body.encode()
+                    res_body
                 )
                 print(res)
 

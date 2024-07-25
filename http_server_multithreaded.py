@@ -32,15 +32,16 @@ def handle_conn(conn):
             "status": "ok",
             "time": str(datetime.now().time()),
             "thread": get_ident()
-        })
+        }).encode()
         res: HttpResponse = HttpResponse(
             200,
             "OK",
             "HTTP/1.0",
             {
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "Content-Length": len(res_body)
             },
-            res_body.encode()
+            res_body
         )
         print(res)
 
