@@ -26,3 +26,12 @@ class HttpRequest:
     @property
     def json(self):
         return json.loads(self.body)
+
+
+@dataclass
+class HttpResponse:
+    status_code: int
+    reason_phrase: str
+    version: str
+    headers: Dict[str, str]
+    body: str
