@@ -13,7 +13,7 @@ python3 http_server.py
 ```
 
 ```zsh
-curl 127.0.0.1:8080/v1 -X POST -d '{"a":"nice","evening":"with marta"}' -H 'Content-Type: application/json' | jq
+curl 127.0.0.1:8080/v1 -X POST -d '{"a":"nice","evening":"with them"}' -H 'Content-Type: application/json' | jq
 ```
 
 # Test
